@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Puppy</title>
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0">
+        <link rel="manifest" href="/manifest.json">
+        <style>
+            body {
+                margin: 0;
+                background: #2a2b2b;
+            }
+
+            #app {
+                display: block;
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .Image {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+
+            .Image__loader {
+                display: block;
+                width: 100%;
+                height: 100%;
+                margin: 0 auto;
+                padding: 2em;
+                box-sizing: border-box;
+            }
+
+            .Image__loader path {
+                fill: transparent;
+                stroke: #FFF;
+                stroke-width: 1px;
+                animation: draw 2s linear alternate infinite;
+            }
+
+            @keyframes draw {
+                from {
+                    opacity: 1;
+                }
+
+                to {
+                    opacity: 0;
+                }
+            }
+
+            .Image__error {
+
+            }
+
+            .Image__img {
+                display: block;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+        </style>
+    </head>
+    <body>
+        <script type="x-template" id="image-loader">
+            <div class="Image">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48.839 48.839" v-if="!loaded" class="Image__loader"><path d="M39.04 36.843c2.055 3.234 3.023 4.95 3.023 6.742 0 3.537-2.627 5.252-6.166 5.252-1.56 0-2.567-.002-5.112-1.326 0 0-1.65-1.508-5.508-1.353-3.895-.154-5.545 1.373-5.545 1.373-2.545 1.323-3.516 1.31-5.074 1.31-3.54 0-6.168-1.714-6.168-5.253 0-1.79.97-3.506 3.024-6.742 0 0 3.88-6.445 7.244-9.477 2.43-2.188 5.973-2.18 5.973-2.18h1.094s3.698-.01 5.976 2.18c3.26 3.142 7.24 9.476 7.24 9.475zM16.63 20.878c3.7 0 6.7-4.674 6.7-10.44S20.33 0 16.63 0 9.933 4.674 9.933 10.44s3 10.438 6.7 10.438zm-6.42 10.11c2.728-1.26 3.35-5.723 1.39-9.97s-5.762-6.673-8.49-5.415-3.347 5.723-1.387 9.97c1.96 4.25 5.76 6.672 8.488 5.415zm21.996-10.11c3.7 0 6.7-4.674 6.7-10.44S35.906 0 32.206 0s-6.7 4.674-6.7 10.44c0 5.764 3 10.438 6.7 10.438zm13.52-5.276C43 14.342 39.2 16.767 37.24 21.016s-1.34 8.713 1.388 9.972c2.728 1.258 6.527-1.166 8.488-5.414s1.34-8.713-1.39-9.972z"/></svg>
+                <div v-if="loaded && !success" class="Image__error">Error cargando</div>
+                <img @load="onLoad" @error="onError" v-show="loaded && success" :src="src" class="Image__img">
+            </div>
+        </script>
+        <div id="app" @click="nextImage">
+            <image-loader :src="list[index]" v-if="list.length"></image-loader>
+        </div>
+        <script src="vue.js" charset="utf-8"></script>
+        <script>
+
+            Vue.component('image-loader', {
+                props : {
+                    src : {
+                        type: String,
+                        required: true
+                    }
+                },
+
+                data : function(){
+                    return { loaded : false, success : false };
+                },
+
+                watch : {
+                    src : function(){
+                        Object.assign(this.$data, this.$options.data());
+                    }
+                },
+
+                methods : {
+                    onLoad : function(){
+                        this.loaded = true;
+                        this.success = true;
+                    },
+
+                    onError : function(){
+                        this.loaded = true;
+                        this.success = false;
+                    }
+                },
+
+                template : '#image-loader'
+            });
+
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    list : [],
+                    index: 0,
+                    after : null,
+                    getting : false,
+                },
+
+                methods : {
+                    getImages : function(){
+                        if( this.getting ){ return false; }
+                        this.getting = true;
+                        return fetch(`https://www.reddit.com/r/PuppySmiles.json?after=${this.after}`)
+                            .then( res => res.json() )
+                            .then( res => res.data )
+                            .then( res => {
+                                return { after : res.after, list : res.children };
+                            })
+                            .then( data => {
+                                data.list = data.list
+                                    .map(function(item){
+                                        return item.data.url;
+                                    })
+                                    .filter(function(url){
+                                        return url.indexOf('.jpg') > -1;
+                                    });
+
+                                return data;
+                            }).then( data => {
+                                this.after = data.after;
+                                this.list = this.list.concat(data.list);
+                                this.getting = false;
+                            });
+                    },
+
+                    prevImage : function(){
+                        this.index = Math.max(0, --this.index);
+                    },
+
+                    nextImage : function(){
+                        this.index = Math.min(++this.index, this.list.length);
+
+                        if( this.index == this.list.length - 2){
+                            this.getImages();
+                        }
+                    }
+                },
+                created : function(){
+                    this.getImages();
+                }
+            });
+
+			if ('serviceWorker' in navigator) {
+  	  	  	  navigator.serviceWorker.register('service-worker.js');
+			}
+        </script>
+    </body>
+</html>
