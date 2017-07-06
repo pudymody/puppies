@@ -1,6 +1,6 @@
 {
   "name": "Puppy Viewer",
   "short_name": "PW",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone"
 }
