@@ -2,5 +2,10 @@
   "name": "Puppy Viewer",
   "short_name": "PW",
   "start_url": "./index.html",
-  "display": "standalone"
+  "display": "standalone",
+	"background_color": "#2a2b2b",
+	"icons" : [{
+		"src": "./icon.svg",
+		"sizes": "48x48 72x72 96x96 128x128 256x256"
+	}]
 }

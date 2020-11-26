@@ -22,6 +22,7 @@ const PRECACHE_URLS = [
   'index.html',
   './', // Alias for index.html
   'vue.js',
+	'icon.svg',
 	'manifest.json'
 ];
 
