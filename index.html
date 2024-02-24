@@ -107,7 +107,7 @@
                                         return item.data.url;
                                     })
                                     .filter(function(url){
-                                        return url.indexOf('.jpg') > -1;
+                                        return url.indexOf('.jpg') > -1 || url.indexOf(".jpeg") || url.indexOf(".png") || url.indexOf(".webp");
                                     });
 
                                 return data;
